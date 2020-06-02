@@ -1,0 +1,255 @@
+---
+title: "Coronavirus  Kader Grota"
+output: 
+  flexdashboard::flex_dashboard:
+    theme: cerulean
+    orientation: rows
+    social: menu
+   
+     
+    vertical_layout: fill
+---
+
+<style type="text/css">
+
+
+.navbar {
+  background-color:crimson;
+  border-color:black;
+  font-size: 20px;
+  font-family: Consolas;
+}
+.navbar-brand {
+ color: azure;
+ font-size: 20px;
+ font-family: Consolas;
+
+}
+
+.value-box .caption {
+    font-size: 20px;
+    font-family: Consolas;
+    font-weight: bold;
+}
+
+.value-box {
+    color: azure;
+    font-family: Consolas;
+}
+    
+.body {
+    font-family: Consolas;
+     font-weight: bold;
+   
+}
+</style>   
+
+
+
+```{r setup, include=FALSE }
+library(flexdashboard)
+library(readr)
+library(dplyr)
+library(tidyverse)
+library(leaflet)
+library(plotly)
+library(DT)
+library(fs)
+library(wbstats)
+library(highcharter)
+library(viridisLite)
+
+
+
+```
+
+
+```{r }
+
+
+updateData <- function() {
+
+  if (!dir_exists("data")) {
+    dir.create('data')
+    
+    download.file(
+  url      = "https://www.data.gouv.fr/fr/datasets/r/f4935ed4-7a88-44e4-8f8a-33910a151d42",
+  destfile = "data/covid19_data.csv"
+)
+
+  
+  } else if ((!file.exists("data/covid19_data.csv")) || (as.double(Sys.time() - file_info("data/covid19_data.csv")$change_time, units = "hours") > 0.5)) {
+     download.file(
+  url      = "https://www.data.gouv.fr/fr/datasets/r/f4935ed4-7a88-44e4-8f8a-33910a151d42",
+  destfile = "data/covid19_data.csv"
+)
+  }
+}
+
+updateData()
+
+
+covid19_data <- read_delim("data/covid19_data.csv", 
+                           ";", escape_double = FALSE, skip = 5)
+
+
+covid19_data_Maroc <- filter(covid19_data, Pays == "Maroc")
+covid19_data_Maroc$Date =as.Date(covid19_data_Maroc$Date,"%d/%m/%y")
+covid19_data_Maroc_Sort <- covid19_data_Maroc[order(covid19_data_Maroc$Date),]
+
+```
+
+
+
+Interactive Data Visualization
+=====================================
+  
+row
+-------------------------------------
+
+
+
+
+
+### Infections
+
+```{r}
+valueBox(covid19_data_Maroc[1,3],
+         icon = "fas fa-ambulance",
+         color = "#002180")
+
+```
+
+### TauxInfection %
+
+```{r}
+valueBox(covid19_data_Maroc[1,8],
+         color = "#002180")
+
+```
+
+### Guerisons
+
+```{r}
+valueBox(covid19_data_Maroc[1,5],
+         icon = "fas fa-heart",
+         color = "#c4e21c")
+```
+
+### TauxGuerison %
+
+```{r}
+valueBox(covid19_data_Maroc[1,3],
+         
+         color = "#c4e21c")
+
+```
+
+
+### Deces
+
+```{r}
+valueBox(covid19_data_Maroc[1,4],
+         icon = "fas fa-heartbeat",
+         color = "#4e3737")
+```
+
+
+### TauxDeces %
+
+```{r}
+valueBox(covid19_data_Maroc[1,6],
+        
+         color = "#4e3737")
+
+```
+
+
+
+chart
+-------------------------------------
+
+```{r}
+
+
+
+
+
+cols <- viridis(3)
+cols <- substr(cols, 0, 7)
+
+
+  
+
+data(covid19_data_Maroc_Sort)
+hc <- highchart() %>% 
+  
+  hc_xAxis(categories = covid19_data_Maroc_Sort$Date) %>% 
+  hc_add_series(name = "Infections", data = covid19_data_Maroc_Sort$Infections)%>% 
+  hc_add_series(name = "Guerisons", data = covid19_data_Maroc_Sort$Guerisons)%>% 
+  hc_add_series(name = "Deces", data = covid19_data_Maroc_Sort$Deces)%>% 
+
+ hc_colors(cols)
+  
+hc
+
+```
+
+
+```{r}
+
+data(covid19_data_Maroc)
+hc <- highchart() %>% 
+ 
+  hc_xAxis(categories = covid19_data_Maroc$Date) %>% 
+   hc_xAxis(categories = covid19_data_Maroc_Sort$Date) %>% 
+  hc_add_series(name = "Infections", data = covid19_data_Maroc_Sort$Infections , type = "area")%>% 
+  hc_add_series(name = "Guerisons", data = covid19_data_Maroc_Sort$Guerisons , type = "area")%>% 
+  hc_add_series(name = "Deces", data = covid19_data_Maroc_Sort$Deces , type = "area")%>% 
+
+ hc_colors(cols)
+  
+hc
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+data(covid19_data_Maroc)
+hc <- highchart() %>% 
+  
+  hc_xAxis(categories = covid19_data_Maroc$Date) %>% 
+   hc_xAxis(categories = covid19_data_Maroc_Sort$Date) %>% 
+  hc_add_series(name = "Infections", data = covid19_data_Maroc_Sort$Infections , type = "column")%>% 
+  hc_add_series(name = "Guerisons", data = covid19_data_Maroc_Sort$Guerisons , type = "column")%>% 
+  hc_add_series(name = "Deces", data = covid19_data_Maroc_Sort$Deces , type = "column")%>% 
+
+ hc_colors(cols)
+
+  
+hc
+
+```
+
+
+Data Table
+========================================
+
+```{r}
+datatable(covid19_data_Maroc,
+          caption = "Failure Data",
+          rownames = T,
+          filter = "top",
+          options = list(pageLength = 25))
+```

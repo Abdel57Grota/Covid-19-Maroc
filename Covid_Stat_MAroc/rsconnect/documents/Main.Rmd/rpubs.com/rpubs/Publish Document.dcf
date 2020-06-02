@@ -1,0 +1,10 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/622703/19ba37f12257488f8f1cdaaaf9c6372e
+bundleId: https://api.rpubs.com/api/v1/document/622703/19ba37f12257488f8f1cdaaaf9c6372e
+url: http://rpubs.com/kadergrota57/622703
+when: 1591137452.10048
